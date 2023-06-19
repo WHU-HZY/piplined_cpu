@@ -21,7 +21,7 @@ module xgriscv_sc(clk, rstn, pcW);
          .PC_out(PC),                   // output: PC
          .Addr_out(dm_addr),          // output: address from cpu to memory
          .Data_out(dm_din),        // output: data from cpu to memory
-         .pcW(pcW),
+         .pcW(pcW),                 // 测试程序显示指令地址用到
          .DMType(DMType)
          );
         // .reg_sel(reg_sel),         // input:  register selection
