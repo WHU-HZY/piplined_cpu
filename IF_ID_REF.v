@@ -14,8 +14,10 @@ module IF_ID_REF(
             inst_ID <= 0;
         end 
         else begin
-            PC_ID <= PC;
-            inst_ID <= inst;
+            if(IF_ID_Write)begin
+                PC_ID <= PC;
+                inst_ID <= inst;
+            end
         end
     end
 endmodule
