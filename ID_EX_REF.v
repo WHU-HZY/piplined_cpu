@@ -2,17 +2,16 @@ module ID_EX_REF(
     // system input signs
     input clk,
     input rst,
-    input IF_ID_Write,
 
-    // ID/EX input signs
+    // ID/EX signs
     input [31:0] IF_ID_PC,
     input [31:0] IF_ID_read1_data,
     input [31:0] IF_ID_read2_data,
-    input [63:0] IF_ID_imm,
+    input [31:0] IF_ID_imm,
     input [4:0] IF_ID_RS1,
     input [4:0] IF_ID_RS2,
     input [4:0] IF_ID_RD,
-    output reg [63:0] ID_EX_imm,
+    output reg [31:0] ID_EX_imm,
     output reg [31:0] ID_EX_PC,
     output reg [31:0] ID_EX_read1_data,
     output reg [31:0] ID_EX_read2_data,
@@ -60,8 +59,6 @@ module ID_EX_REF(
             ID_EX_ALUOp <= 0;
         end 
         else begin
-            //如果可写
-            if(IF_ID_Write)begin
                 ID_EX_PC <= IF_ID_PC;
                 ID_EX_read1_data <= IF_ID_read1_data;
                 ID_EX_read2_data <= IF_ID_read2_data;
@@ -77,8 +74,6 @@ module ID_EX_REF(
                 ID_EX_ALUSrc <= CTRL_ALUSrc;
                 ID_EX_ALUOp <= CTRL_ALUOp;
             end
-            end
         end
-    end
 
 endmodule

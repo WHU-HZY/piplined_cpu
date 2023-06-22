@@ -20,13 +20,11 @@ module SCPU(
 
     //输入输出端口（口线）定义
     wire        RegWrite;    // control signal to register write
-    wire [5:0]       EXTOp;       // control signal to signed extension
+    wire [5:0]  EXTOp;       // control signal to signed extension
     wire [4:0]  ALUOp;       // ALU opertion
     wire [2:0]  NPCOp;       // next PC operation
-
     wire [2:0]  WDSel;       // (register) write data selection
     wire [1:0]  GPRSel;      // general purpose register selection
-   
     wire        ALUSrc;      // ALU source for A
     wire        Zero;        // ALU ouput zero
 
@@ -45,7 +43,7 @@ module SCPU(
     wire [6:0]  Funct7;       // funct7
     wire [2:0]  Funct3;       // funct3
     wire [11:0] Imm12;       // 12-bit immediate
-    wire [31:0] Imm32;       // 32-bit immediate
+    // wire [31:0] Imm32;       // 32-bit immediate
     wire [19:0] IMM;         // 20-bit immediate (address)
     wire [4:0]  A3;          // register address for write
     reg [31:0] WD;          // register write data
@@ -59,6 +57,31 @@ module SCPU(
     wire[31:0] aluout;
 
     //IF_ID寄存器相关端口定义
+    wire [31:0] inst_out;
+    wire [31:0] IF_ID_PC
+
+    //CTRL_MUX OUT定义
+    //WB
+    wire RegWrite_mux;
+    wire MemtoReg_mux;
+    //MEM
+    wire MemWrite_mux;
+    wire MemRead_mux;
+    wire Branch_mux;
+    //EX
+    wire ALUSrc_mux;
+    wire [4:0]ALUOp_mux;
+
+    //ID_EX寄存器相关端口定义
+    wire[63:0] ID_EX_imm,
+    wire [31:0] ID_EX_PC,
+    wire [31:0] ID_EX_read1_data,
+    wire [31:0] ID_EX_read2_data,
+    wire [4:0] ID_EX_RS1,
+    wire [4:0] ID_EX_RS2,
+    wire [4:0] ID_EX_RD,
+
+
 
 
     //端口赋值
@@ -66,35 +89,103 @@ module SCPU(
 	assign B = (ALUSrc) ? immout : RD2;
 	assign Data_out = RD2;
 	
-	assign iimm_shamt=inst_in[24:20];
-	assign iimm=inst_in[31:20];
-	assign simm={inst_in[31:25],inst_in[11:7]};
-	assign bimm={inst_in[31],inst_in[7],inst_in[30:25],inst_in[11:8]};
-	assign uimm=inst_in[31:12];
-	assign jimm={inst_in[31],inst_in[19:12],inst_in[20],inst_in[30:21]};
+	assign iimm_shamt=inst_out[24:20];
+	assign iimm=inst_out[31:20];
+	assign simm={inst_out[31:25],inst_out[11:7]};
+	assign bimm={inst_out[31],inst_out[7],inst_out[30:25],inst_out[11:8]};
+	assign uimm=inst_out[31:12];
+	assign jimm={inst_out[31],inst_out[19:12],inst_out[20],inst_out[30:21]};
    
-    assign Op = inst_in[6:0];  // instruction
-    assign Funct7 = inst_in[31:25]; // funct7
-    assign Funct3 = inst_in[14:12]; // funct3
-    assign rs1 = inst_in[19:15];  // rs1
-    assign rs2 = inst_in[24:20];  // rs2
-    assign rd = inst_in[11:7];  // rd
-    assign Imm12 = inst_in[31:20];// 12-bit immediate
-    assign IMM = inst_in[31:12];  // 20-bit immediate
+    assign Op = inst_out[6:0];  // instruction
+    assign Funct7 = inst_out[31:25]; // funct7
+    assign Funct3 = inst_out[14:12]; // funct3
+    assign rs1 = inst_out[19:15];  // rs1
+    assign rs2 = inst_out[24:20];  // rs2
+    assign rd = inst_out[11:7];  // rd
+    assign Imm12 = inst_out[31:20];// 12-bit immediate
+    assign IMM = inst_out[31:12];  // 20-bit immediate
    
-    //写到这里！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
     //IF_ID寄存器堆
     IF_ID_REF U_IF_ID_REF(
         //input
-        .clk(clk),.rst(reset),.inst_in(inst_in),
+        .clk(clk),.rst(reset),.inst_in(inst_in),.IF_ID_Write(IF_ID_Write),.PC(PC_out),
         //output
-        .PC_out(PC_out),.inst_out(inst_out),.IF_ID_Write(IF_ID_Write)
+        .inst_out(inst_out)),.PC_ID(IF_ID_PC);
+
+
+    //ID_EX寄存器堆
+    ID_EX_REF U_ID_EX_REF(
+        //system input signs
+        .clk(clk),
+        .rst(reset),
+
+        // ID/EX  signs
+        //input 
+        .IF_ID_PC(IF_ID_PC),
+        .IF_ID_read1_data(RD1),
+        .IF_ID_read2_data(RD2),
+        .IF_ID_imm(immout),
+        .IF_ID_RS1(rs1),
+        .IF_ID_RS2(rs2),
+        .IF_ID_RD(rd),
+        //output
+        .ID_EX_imm(ID_EX_imm),
+        .ID_EX_PC(ID_EX_PC),
+        .ID_EX_read1_data(ID_EX_read1_data),
+        .ID_EX_read2_data(ID_EX_read1_data),
+        .ID_EX_RS1(ID_EX_RS1),
+        .ID_EX_RS2(ID_EX_RS2),
+        .ID_EX_RD(ID_EX_RD),
+
+        //WB 
+        //input
+        input       CTRL_RegWrite, // control signal for register write
+        input       CTRL_MemtoReg, // control signal for memory to register
+        //output
+        output reg  ID_EX_RegWrite,
+        output reg  ID_EX_MemtoReg,
+
+        //MEM 
+        //input 
+        input       CTRL_MEM_MemWrite, // control signal for memory write
+        input       CTRL_MEM_MemRead,  // control signal for memory read
+        input       CTRL_MEM_Branch,   // control signal for branch
+        //output 
+        output reg  ID_EX_MemWrite,
+        output reg  ID_EX_MemRead,
+        output reg  ID_EX_Branch,
+
+        //EX
+        //input 
+        input  CTRL_ALUSrc,   // ALU source for A
+        input [4:0] CTRL_ALUOp,    // ALU opertion
+        //ouput 
+        output reg  ID_EX_ALUSrc,
+        output reg [4:0] ID_EX_ALUOp
     );
+
+    //CTRL_MUX控制单元
+    ctrl_mux U_ctrl_mux(
+        //input     
+        .CTRL_RegWrite(RegWrite),//ok
+        .CTRL_MemtoReg(CTRL_MemtoReg),//!!!
+        .CTRL_MEM_MemWrite(mem_w),//ok
+        .CTRL_MEM_MemRead(CTRL_MEM_MemRead),//!!!
+        .CTRL_MEM_Branch(CTRL_MEM_Branch),//!!!
+        .CTRL_ALUSrc(ALUSrc),//ok
+        .CTRL_ALUOp(ALUOp),.CTRL_SELECT(CTRL_SELECT),//ok
+        //ouput
+        .ID_EX_RegWrite,(RegWrite_mux).ID_EX_MemtoReg(MemtoReg_mux),
+        .ID_EX_MemWrite(MemWrite_mux),.ID_EX_MemRead(MemRead_mux),
+        .ID_EX_Branch(Branch_mux),.ID_EX_ALUSrc(ALUSrc_mux),
+        .ID_EX_ALUOp(ALUOp_mux)
+    );
+
 
     //阻塞检测单元
     Hazard_detection_unit U_Hazard_detection_unit(
         //input
-       .ID_EX_MemRead(ID_EX_MemRead),.ID_EX_RS1(),.ID_EX_RS2(),.ID_EX_RD(),
+       .ID_EX_MemRead(),.IF_ID_RS1(rs1),.IF_ID_RS2(rs2),.IF_ID_RD(rd),
         //output 
        .PCWrite(PCWrite),.IF_ID_Write(IF_ID_Write),.CTRL_SELECT(CTRL_SELECT)
     );
