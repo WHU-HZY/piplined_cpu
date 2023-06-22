@@ -16,7 +16,7 @@ module SCPU(
     //字长
     output [2:0] DMType
 );
-
+  
 
     //输入输出端口（口线）定义
     wire        RegWrite;    // control signal to register write
@@ -58,7 +58,7 @@ module SCPU(
 
     //IF_ID寄存器相关端口定义
     wire [31:0] inst_out;
-    wire [31:0] IF_ID_PC
+    wire [31:0] IF_ID_PC;
 
     //CTRL_MUX OUT定义
     //WB
@@ -73,13 +73,13 @@ module SCPU(
     wire [4:0]ALUOp_mux;
 
     //ID_EX寄存器相关端口定义
-    wire[63:0] ID_EX_imm,
-    wire [31:0] ID_EX_PC,
-    wire [31:0] ID_EX_read1_data,
-    wire [31:0] ID_EX_read2_data,
-    wire [4:0] ID_EX_RS1,
-    wire [4:0] ID_EX_RS2,
-    wire [4:0] ID_EX_RD,
+    wire[63:0] ID_EX_imm;
+    wire [31:0] ID_EX_PC;
+    wire [31:0] ID_EX_read1_data;
+    wire [31:0] ID_EX_read2_data;
+    wire [4:0] ID_EX_RS1;
+    wire [4:0] ID_EX_RS2;
+    wire [4:0] ID_EX_RD;
 
 
 
@@ -110,10 +110,11 @@ module SCPU(
         //input
         .clk(clk),.rst(reset),.inst_in(inst_in),.IF_ID_Write(IF_ID_Write),.PC(PC_out),
         //output
-        .inst_out(inst_out)),.PC_ID(IF_ID_PC);
+        .inst_out(inst_out),.PC_ID(IF_ID_PC));
 
 
     //ID_EX寄存器堆
+    //写到这里!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ID_EX_REF U_ID_EX_REF(
         //system input signs
         .clk(clk),
@@ -175,7 +176,7 @@ module SCPU(
         .CTRL_ALUSrc(ALUSrc),//ok
         .CTRL_ALUOp(ALUOp),.CTRL_SELECT(CTRL_SELECT),//ok
         //ouput
-        .ID_EX_RegWrite,(RegWrite_mux).ID_EX_MemtoReg(MemtoReg_mux),
+        .ID_EX_RegWrite(RegWrite_mux),.ID_EX_MemtoReg(MemtoReg_mux),
         .ID_EX_MemWrite(MemWrite_mux),.ID_EX_MemRead(MemRead_mux),
         .ID_EX_Branch(Branch_mux),.ID_EX_ALUSrc(ALUSrc_mux),
         .ID_EX_ALUOp(ALUOp_mux)
@@ -239,4 +240,4 @@ module SCPU(
 		    `WDSel_FromPC: WD<=PC_out+4;
 	    endcase
     end
-endmodule
+endmodule 

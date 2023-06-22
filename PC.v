@@ -1,11 +1,11 @@
-module PC( clk, rst, NPC, PC );
+module PC( clk, rst, NPC, PCWrite, PC);
 
-  input              clk,
-  input              rst,
+  input              clk;
+  input              rst;
 
-  input       [31:0] NPC,
-  input              PCWrite,
-  output reg  [31:0] PC,
+  input       [31:0] NPC;
+  input              PCWrite;
+  output reg  [31:0] PC;
 
   always @(posedge clk, posedge rst)
     if (rst) 

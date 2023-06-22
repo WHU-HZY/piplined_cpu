@@ -13,8 +13,8 @@ module EX_MEM_REF(
     output reg EX_MEM_adder_result,
     output reg EX_MEM_zero,
     output reg EX_MEM_alu_result,
-    output [31:0] EX_MEM_read2_data,
-    output [4:0] EX_MEM_RD,
+    output reg [31:0] EX_MEM_read2_data,
+    output reg [4:0] EX_MEM_RD,
 
     //WB 
     input       ID_EX_RegWrite, // control signal for register write
@@ -28,7 +28,7 @@ module EX_MEM_REF(
     input       ID_EX_Branch,   // control signal for branch
     output reg  EX_MEM_MemWrite,
     output reg  EX_MEM_MemRead,
-    output reg  EX_MEM_Branch,
+    output reg  EX_MEM_Branch
 
     );
 

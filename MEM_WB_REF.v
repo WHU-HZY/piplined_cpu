@@ -5,7 +5,7 @@ module EX_MEM_REF(
 
     // MEM/WB signs
     input [31:0] memread_data,
-    input [31:0] EX_MEM_alu_result
+    input [31:0] EX_MEM_alu_result,
   
     output reg [31:0] MEM_WB_memread_data,
     output reg [31:0] MEM_WB_alu_result,
@@ -15,7 +15,7 @@ module EX_MEM_REF(
     input       EX_MEM_MemtoReg, // control signal for memory to register
     
     output reg  MEM_WB_RegWrite,
-    output reg  MEM_WB_MemtoReg,
+    output reg  MEM_WB_MemtoReg
     );
 
     always @(posedge clk) begin
