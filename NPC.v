@@ -6,7 +6,7 @@ module NPC(
    input [2:0] NPCOp, 
    input [31:0] PCPLUS4, 
    input [31:0] PCPLUSimm, 
-   output [31:0] aluout,
+   input [31:0] aluout,
    //output 
    output reg [31:0] NPC, 
    output [31:0] pcW

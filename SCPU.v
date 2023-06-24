@@ -227,7 +227,7 @@ module SCPU(
 
 
     //MEM_WB寄存器堆
-    MEM_WB U_MEM_WB_REF(
+    MEM_WB_REF U_MEM_WB_REF(
         // system input signs
         .clk(clk),
         .rst(reset),

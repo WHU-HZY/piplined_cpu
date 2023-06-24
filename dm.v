@@ -31,7 +31,7 @@ module dm(clk, DMWr, addr, din, PC, DMType, dout);
 
 ///
       case(DMType) //根据字长类型选择写入方式
-      `dm_word: dout = dmem[addr[31:2]];//字长为4字节，单字数据，没有符号问题
+      `dm_word: dout <= dmem[addr[31:2]];//字长为4字节，单字数据，没有符号问题
       `dm_halfword: dout[15:0] <= $signed(dmem[addr[31:2]][15:0]);//字长为2字节,有符号数,在最高位赋值时都需要进行有符号数处理
       `dm_byte:dout[7:0] <= $signed(dmem[addr[31:2]][7:0]);//字长为1字节,有符号数,在最高位赋值时都需要进行有符号数处理
       `dm_halfword_unsigned:dout[15:0] <= $unsigned(dmem[addr[31:2]][15:0]);//字长为2字节,无符号数,在最高位赋值时都需要进行无符号数处理

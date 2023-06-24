@@ -6,7 +6,7 @@ module MEM_WB_REF(
     input [31:0]MEM_Read_Data,
     input [31:0]EX_MEM_ALUout,
     input [4:0]EX_MEM_RD,
-    output reg [31:0]MEM_WB_Read_Data,
+    output reg [31:0]MEM_WB_Data_in,
     output reg [31:0]MEM_WB_ALUout,
     output reg [4:0]MEM_WB_RD,
     // WB
@@ -17,14 +17,14 @@ module MEM_WB_REF(
 );
     always @(posedge clk) begin
         if(rst)begin
-            MEM_WB_Read_Data <= 0;
+            MEM_WB_Data_in <= 0;
             MEM_WB_ALUout <= 0;
             MEM_WB_RD <= 0;
             MEM_WB_RegWrite <= 0;
             MEM_WB_WDSel <= 0;
         end
         else begin
-            MEM_WB_Read_Data <= MEM_Read_Data;
+            MEM_WB_Data_in <= MEM_Read_Data;
             MEM_WB_ALUout <= EX_MEM_ALUout;
             MEM_WB_RD <= EX_MEM_RD;
             MEM_WB_RegWrite <= EX_MEM_RegWrite;
