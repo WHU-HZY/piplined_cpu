@@ -21,24 +21,24 @@ module ID_EX_REF(
 
     //WB 
     input       CTRL_RegWrite, // control signal for register write
-    input       CTRL_MemtoReg, // control signal for memory to register
+    input [2:0] CTRL_WDSel,
     output reg  ID_EX_RegWrite,
-    output reg  ID_EX_MemtoReg,
+    output reg [2:0] ID_EX_WDSel,
+
 
     //MEM 
     input       CTRL_MEM_MemWrite, // control signal for memory write
-    input       CTRL_MEM_MemRead,  // control signal for memory read
-    input       CTRL_MEM_Branch,   // control signal for branch
     output reg  ID_EX_MemWrite,
-    output reg  ID_EX_MemRead,
-    output reg  ID_EX_Branch,
 
     //EX
     input  CTRL_ALUSrc,   // ALU source for A
     input [4:0] CTRL_ALUOp,    // ALU opertion
+    input [2:0] CTRL_NPCOp,
     output reg  ID_EX_ALUSrc,
-    output reg [4:0] ID_EX_ALUOp
+    output reg [4:0] ID_EX_ALUOp,
+    output reg [2:0] ID_EX_NPCOp
     );
+    
 
     always @(posedge clk) begin
         if (rst) begin
@@ -51,12 +51,11 @@ module ID_EX_REF(
             ID_EX_RS2 <= 0;
             ID_EX_RD <= 0;
             ID_EX_RegWrite <= 0;
-            ID_EX_MemtoReg <= 0;
             ID_EX_MemWrite <= 0;
-            ID_EX_MemRead <= 0;
-            ID_EX_Branch <= 0;
             ID_EX_ALUSrc <= 0;
             ID_EX_ALUOp <= 0;
+            ID_EX_NPCOp <= 0;
+            ID_EX_WDSel <= 0;
         end 
         else begin
                 ID_EX_PC <= IF_ID_PC;
@@ -67,12 +66,11 @@ module ID_EX_REF(
                 ID_EX_RS2 <= IF_ID_RS2;
                 ID_EX_RD <= IF_ID_RD;
                 ID_EX_RegWrite <= CTRL_RegWrite;
-                ID_EX_MemtoReg <= CTRL_MemtoReg;
                 ID_EX_MemWrite <= CTRL_MEM_MemWrite;
-                ID_EX_MemRead <= CTRL_MEM_MemRead;
-                ID_EX_Branch <= CTRL_MEM_Branch;
                 ID_EX_ALUSrc <= CTRL_ALUSrc;
                 ID_EX_ALUOp <= CTRL_ALUOp;
+                ID_EX_NPCOp <= CTRL_NPCOp;
+                ID_EX_WDSel <= CTRL_WDSel;
             end
         end
 

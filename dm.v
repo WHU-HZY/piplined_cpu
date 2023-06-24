@@ -1,13 +1,13 @@
 `include "ctrl_encode_def.v"
 // data memory
 module dm(clk, DMWr, addr, din, PC, DMType, dout);
-   input          clk;
-   input          DMWr;
-   input  [31:2]  addr;
-   input  [31:0]  din;
-   input  [31:0]  PC;
-   input  [2:0]   DMType;
-   output [31:0]  dout;
+   input          clk;//时钟信号
+   input          DMWr;//写使能信号
+   input  [31:2]  addr;//地址
+   input  [31:0]  din;//写入数据
+   input  [31:0]  PC;//当前PC值
+   input  [2:0]   DMType;//字长类型
+   output [31:0]  dout;//读出数据
      
    reg [31:0] dmem[8191:0]; ////
    reg [31:0] dout;
