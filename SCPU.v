@@ -19,6 +19,7 @@ module SCPU(
   
 
     //ctrl输入输出端口（口线）定义
+    wire        MemRead;     //control signal to memory
     wire        MemWrite;
     wire        RegWrite;    // control signal to register write
     wire [5:0]  EXTOp;       // control signal to signed extension
@@ -51,6 +52,7 @@ module SCPU(
     reg [31:0] WD;          // register write data
     wire [31:0] RD1,RD2;         // register data specified by rs
     wire [31:0] B;           // operator for ALU B
+    wire [2:0]  ID_DMType;      //字长类型
 	
     //立即数扩展相关端口定义
 	wire [4:0] iimm_shamt;
@@ -67,7 +69,9 @@ module SCPU(
     //WB
     wire RegWrite_mux;
     //MEM
+    wire MemRead_mux;
     wire MemWrite_mux;
+    wire [2:0] DMType_mux;
     //EX
     wire ALUSrc_mux;
     wire [4:0]ALUOp_mux;
@@ -88,6 +92,8 @@ module SCPU(
     wire [2:0] ID_EX_WDSel;
     //MEM output
     wire ID_EX_MemWrite;
+    wire ID_EX_MemRead;
+    wire [2:0] ID_EX_DMType;
     //EX output
     wire ID_EX_ALUSrc;
     wire [4:0]ID_EX_ALUOp;
@@ -101,8 +107,7 @@ module SCPU(
     wire [4:0]EX_MEM_RD;
     wire EX_MEM_RegWrite;
     wire [2:0]EX_MEM_WDSel;
-
-
+    wire EX_MEM_MemRead;
     //MEM_WB寄存器堆
     wire [31:0]MEM_WB_Data_in;
     wire [31:0]MEM_WB_ALUout;
@@ -165,7 +170,7 @@ module SCPU(
         .ID_EX_imm(ID_EX_imm),
         .ID_EX_PC(ID_EX_PC),
         .ID_EX_read1_data(ID_EX_read1_data),
-        .ID_EX_read2_data(ID_EX_read1_data),
+        .ID_EX_read2_data(ID_EX_read2_data),
         .ID_EX_RS1(ID_EX_RS1),
         .ID_EX_RS2(ID_EX_RS2),
         .ID_EX_RD(ID_EX_RD),
@@ -178,9 +183,13 @@ module SCPU(
         .ID_EX_RegWrite(ID_EX_RegWrite),
         //MEM 
         //input 
+        .CTRL_MEM_MemRead(MemRead_mux), // control signal for memory read
         .CTRL_MEM_MemWrite(MemWrite_mux), // control signal for memory write
+        .CTRL_DMType(DMType_mux),
         //output 
         .ID_EX_MemWrite(ID_EX_MemWrite),
+        .ID_EX_MemRead(ID_EX_MemRead),
+        .ID_EX_DMType(ID_EX_DMType),
         //EX
         //input 
         .CTRL_ALUSrc(ALUSrc_mux),   // ALU source for A
@@ -200,12 +209,12 @@ module SCPU(
         .rst(reset),
         // EX/MEM  signs
         //input 
-        .adder_result(EX_NPC),//下一条指令的地址
+        .EX_NPC(EX_NPC),//下一条指令的地址
         .alu_result(aluout),
         .ID_EX_read2_data(ID_EX_read2_data),//作为写入mem的数据
         .ID_EX_RD(ID_EX_RD),
         //output 
-        .EX_MEM_adder_result(EX_MEM_NPC),
+        .EX_MEM_NPC(EX_MEM_NPC),
         .EX_MEM_alu_result(EX_MEM_ALUout),
         .EX_MEM_read2_data(EX_MEM_read2_data),
         .EX_MEM_RD(EX_MEM_RD),
@@ -220,9 +229,13 @@ module SCPU(
         .EX_MEM_RegWrite(EX_MEM_RegWrite),
 
         //MEM 
+        .ID_EX_MemRead(ID_EX_MemRead),
         .ID_EX_MemWrite(ID_EX_MemWrite), // control signal for memory write
+        .ID_EX_DMType(ID_EX_DMType),
         //output
-        .EX_MEM_MemWrite(EX_MEM_MemWrite)
+        .EX_MEM_MemRead(EX_MEM_MemRead),
+        .EX_MEM_MemWrite(EX_MEM_MemWrite),
+        .EX_MEM_DMType(DMType)
     );
 
 
@@ -253,20 +266,25 @@ module SCPU(
 
     //CTRL_MUX控制单元
     ctrl_mux U_ctrl_mux(
+        .CTRL_SELECT(CTRL_SELECT),//ok
         //input     
         .CTRL_RegWrite(RegWrite),//ok
-        .CTRL_MEM_MemWrite(MemWrite),//ok
+        .CTRL_MemWrite(MemWrite),//ok
         .CTRL_ALUSrc(ALUSrc),//ok
         .CTRL_ALUOp(ALUOp),
-        .CTRL_SELECT(CTRL_SELECT),//ok
         .CTRL_WDSel(WDSel),
+        .CTRL_NPCOp(NPCOp),
+        .CTRL_MemRead(MemRead),
+        .CTRL_DMType(ID_DMType),
         //ouput
         .ID_EX_RegWrite(RegWrite_mux),
         .ID_EX_MemWrite(MemWrite_mux),
         .ID_EX_ALUSrc(ALUSrc_mux),
         .ID_EX_ALUOp(ALUOp_mux),
         .ID_EX_NPCOp(NPCOp_mux),
-        .ID_EX_WDSel(WDSel_mux)
+        .ID_EX_WDSel(WDSel_mux),
+        .ID_EX_MemRead(MemRead_mux),
+        .ID_EX_DMType(DMType_mux)
     );
 
 
@@ -281,10 +299,11 @@ module SCPU(
 
    // 指令控制单元
 	ctrl U_ctrl(
-		.Op(Op), .Funct7(Funct7), .Funct3(Funct3), .Zero(Zero), 
+		.Op(Op), .Funct7(Funct7), .Funct3(Funct3),  
 		.RegWrite(RegWrite), .MemWrite(MemWrite),
 		.EXTOp(EXTOp), .ALUOp(ALUOp), .NPCOp(NPCOp), 
-		.ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel),.DMType(DMType)
+		.ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel),.DMType(ID_DMType),
+        .MemRead(MemRead)
 	);
 
     //这里NPC记得替换成EX_MEM阶段的
@@ -295,7 +314,8 @@ module SCPU(
     // PCSrc写入PC的数据来源
 	NPC U_NPC(
         //input 
-        .PC(ID_EX_PC), 
+        .Zero(Zero),
+        .PC(PC_out), 
         .NPCOp(ID_EX_NPCOp), 
         .PCPLUS4(adder_PCPLUS4),
         .PCPLUSimm(adder_PCPLUSimm),
@@ -308,7 +328,8 @@ module SCPU(
 
     ADDER U_ADDER(
         //input 
-        .PC(ID_EX_PC),
+        .PC_Now(PC_out),
+        .ID_EX_PC(ID_EX_PC),
         .IMM(ID_EX_imm),
         //output
         .PCPLUSimm(adder_PCPLUSimm),
@@ -335,7 +356,7 @@ module SCPU(
 	);
 
     //逻辑运算单元
-	alu U_alu(.A(RD1), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero), .PC(IF_ID_PC));
+	alu U_alu(.A(ID_EX_read1_data), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero), .PC(IF_ID_PC));
 
     //寄存器写入数据字长格式选择
     always @*

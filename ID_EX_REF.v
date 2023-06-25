@@ -27,8 +27,12 @@ module ID_EX_REF(
 
 
     //MEM 
+    input       CTRL_MEM_MemRead,  // control signal for memory read
     input       CTRL_MEM_MemWrite, // control signal for memory write
+    input [2:0] CTRL_DMType,
     output reg  ID_EX_MemWrite,
+    output reg  ID_EX_MemRead,
+    output reg  [2:0] ID_EX_DMType,
 
     //EX
     input  CTRL_ALUSrc,   // ALU source for A
@@ -56,6 +60,8 @@ module ID_EX_REF(
             ID_EX_ALUOp <= 0;
             ID_EX_NPCOp <= 0;
             ID_EX_WDSel <= 0;
+            ID_EX_MemRead <= 0;
+            ID_EX_DMType <= 0;
         end 
         else begin
                 ID_EX_PC <= IF_ID_PC;
@@ -71,6 +77,8 @@ module ID_EX_REF(
                 ID_EX_ALUOp <= CTRL_ALUOp;
                 ID_EX_NPCOp <= CTRL_NPCOp;
                 ID_EX_WDSel <= CTRL_WDSel;
+                ID_EX_MemRead <= CTRL_MEM_MemRead;
+                ID_EX_DMType <= CTRL_DMType;
             end
         end
 

@@ -1,16 +1,16 @@
 // `include "ctrl_encode_def.v"
 
 //123
-module ctrl(Op, Funct7, Funct3, Zero, 
+module ctrl(Op, Funct7, Funct3,
             RegWrite, MemWrite,
             EXTOp, ALUOp, NPCOp, 
-            ALUSrc, GPRSel, WDSel,DMType
+            ALUSrc, GPRSel, WDSel,DMType,
+            MemRead
             );
             
    input  [6:0] Op;       // opcode
    input  [6:0] Funct7;    // funct7
    input  [2:0] Funct3;    // funct3
-   input        Zero;
    
    output       RegWrite; // control signal for register write
    output       MemWrite; // control signal for memory write
@@ -21,6 +21,7 @@ module ctrl(Op, Funct7, Funct3, Zero,
 	 output [2:0] DMType;   //字长类型
    output [1:0] GPRSel;   // general purpose register selection
    output [2:0] WDSel;    // (register) write data selection
+   output MemRead;
    
 
   // the definition of all the instructions
@@ -93,7 +94,7 @@ module ctrl(Op, Funct7, Funct3, Zero,
   assign RegWrite   = rtype | itype_r | i_jalr | i_jal | i_lui | i_auipc | itype_l ; // register write
   assign MemWrite   = stype;                           // memory write
   assign ALUSrc     = itype_r | stype | i_jal | i_jalr | i_lui | i_auipc | itype_l;   // ALU B is from instruction immediate
-
+  assign MemRead    = itype_l; // Memory Read 
 
   // signed extension (several methods to extend the immediate numbers)
   // EXT_CTRL_ITYPE_SHAMT 6'b100000
@@ -125,7 +126,8 @@ module ctrl(Op, Funct7, Funct3, Zero,
   // NPC_BRANCH  3'b001
   // NPC_JUMP    3'b010
   // NPC_JALR	   3'b100
-  assign NPCOp[0] = sbtype & Zero; //0 + sb指令，跳转
+  // assign NPCOp[0] = sbtype & Zero; //0 + sb指令，跳转
+  assign NPCOp[0] = sbtype; //这里原来在单周期是直接得出来结果的，但是多周期的时候zero在后面的阶段产生，所以不能时间倒流，这里我选择在第0位只传sbtype，然后传到EX阶段的时候再用alu产生的zero信号与NPCOp[0],就可以得到正确的NPCOp
   assign NPCOp[1] = i_jal;
 	assign NPCOp[2] = i_jalr;
   
